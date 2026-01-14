@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Buat pacar aku, pebrian akbar</title>
+
+<style>
+.diary::-webkit-scrollbar{
+  width:6px;
+}
+.diary::-webkit-scrollbar-thumb{
+  background:#bcdcff;
+  border-radius:10px;
+}
+
+#commentBox{
+  position:relative;
+  z-index:1;
+}
+
+body{
+  background:#eef6ff;
+  font-family:"Comic Sans MS", cursive;
+  display:flex;
+  justify-content:center;
+  padding:20px;
+}
+
+.container{width:380px}
+
+.box{
+  background:#fff;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 15px 35px rgba(0,0,0,.25);
+  margin-bottom:15px;
+}
+
+.hidden{display:none}
+
+.book{
+  position:relative;
+  height:520px;
+  perspective:1200px;
+  margin-bottom:30px; /* ini penting */
+}
+
+
+.sheet{
+  position:absolute;
+  width:100%;
+  height:100%;
+  backface-visibility:hidden;
+  transition:transform 1s;
+}
+
+.lock{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  text-align:center;
+}
+
+.diary{
+  transform:rotateY(180deg);
+}
+
+.diary{
+  transform:rotateY(180deg);
+  overflow-y:auto;
+}
+
+.book.open .lock{
+  transform:rotateY(-180deg);
+}
+
+.book.open .diary{
+  transform:rotateY(0deg);
+}
+
+h3{
+  text-align:center;
+  color:#4a90e2;
+}
+
+p{
+  font-size:14px;
+  line-height:1.8;
+  color:#444;
+  text-align:left;
+}
+
+input, textarea{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #bcdcff;
+  margin-top:10px;
+  font-family:inherit;
+}
+
+button{
+  margin-top:12px;
+  padding:8px 18px;
+  border:none;
+  border-radius:18px;
+  background:#a6d4ff;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+.error{
+  color:#ff5f5f;
+  font-size:13px;
+  margin-top:8px;
+}
+
+.small{
+  font-size:12px;
+  color:#666;
+  text-align:center;
+}
+
+
+
+ul{
+  padding-left:18px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- EMAIL -->
+<div class="box" id="emailBox">
+  <h3>Masukin Email Dulu</h3>
+  <input type="email" id="emailInput" placeholder="email kamu">
+  <button onclick="enter()">Masuk</button>
+</div>
+
+<!-- BOOK -->
+<div class="book hidden" id="book"></div>
+
+<!-- KOMENTAR -->
+<div class="box hidden" id="commentBox">
+  <h3>Kolom Pesan</h3>
+  <textarea id="comment" placeholder="tulis pesan kamu di sini..."></textarea>
+  <button onclick="addComment()">Kirim</button>
+</div>
+
+<!-- ADMIN -->
+<div class="box hidden" id="adminBox">
+  <h3>Yang Pernah Masuk</h3>
+  <ul id="emailLog"></ul>
+  <h3>Komentar Masuk</h3>
+  <ul id="commentLog"></ul>
+</div>
+
+</div>
+
+<script>
+const owner="pijahlijah@gmail.com";
+const special=[
+  "pijahlijah@gmail.com",
+  "pebrianakbar773@gmail.com"
+];
+
+const pages=[
+{
+ pw:"121123",
+ text:`121123
+
+Hari itu kelihatannya biasa.
+Nggak ada yang istimewa, nggak ada rencana apa-apa.
+Tapi justru dari hal yang sederhana itu,
+aku pertama kali ngerasa nyaman sama kamu.
+
+Kita ketemu bukan sebagai dua orang yang sempurna,
+tapi sebagai dua hati yang sama-sama pernah cape.
+Aku nggak langsung jatuh cinta.
+Yang aku rasain cuma tenang.
+
+Tenang karena cara kamu hadir nggak maksa.
+Tenang karena aku bisa jadi diri aku sendiri.
+Sejak hari itu, aku mulai mikir:
+mungkin kamu bukan cuma singgah.`},
+
+{
+ pw:"hafizahhalizah",
+ text: `cerita aku
+Dari awal aku kenal kamu,
+nggak ada yang meledak-ledak, nggak ada yang berlebihan.
+Kamu datang dengan cara yang tenang,
+dan justru itu yang bikin aku berhenti lari.
+
+Aku milih kamu bukan karena momen besar,
+tapi karena hal-hal kecil yang konsisten.
+Cara kamu dengerin aku,
+cara kamu nggak maksa aku jadi siapa-siapa,
+cara kamu bikin aku ngerasa cukup hanya dengan jadi diri aku sendiri.
+
+Sejak awal, kamu nggak pernah janji yang aneh-aneh.
+Kamu cuma hadir.
+Dan buat aku, kehadiran itu lebih penting
+dari seribu kata manis.
+
+Aku milih kamu karena sama kamu,
+aku nggak perlu pura-pura kuat.
+Aku boleh cape.
+Aku boleh diam.
+Dan kamu tetap di situ,
+tanpa nanya berlebihan, tanpa nyuruh aku cepat-cepat sembuh.
+
+Pelan-pelan, aku sadar,
+aku nggak cuma sayang sama kamu,
+tapi percaya.
+Percaya bahwa aku aman di tangan kamu.
+
+Aku milih kamu di setiap versi aku.
+Di saat aku bahagia,
+di saat aku lagi bingung sama hidup,
+di saat aku nggak tau harus jadi apa besok.
+
+Dan sampai hari ini,
+di antara semua kemungkinan,
+aku tetap ada di sini.
+Masih sama kamu.
+Masih milih kamu.
+
+Kalau suatu hari nanti aku harus jelasin
+kenapa aku bertahan sejauh ini,
+jawabannya tetap sederhana,
+karena dari awal sampai sekarang,
+kamu selalu terasa seperti rumah.
+
+Dan kalau aku dikasih kesempatan memilih lagi,
+aku nggak akan mikir lama.
+Aku tetap milih kamu, sayang.
+Pelan, utuh, dan dengan hati yang sama.`},
+
+{
+ pw:"pebrianakbar",
+ text:`Halaman ini tentang kamu.
+
+Aku tau, perjalanan kita nggak selalu lurus.
+Ada bagian dari masa lalu kamu yang sempat bikin aku ragu,
+bikin aku belajar nahan perasaan sendiri,
+bikin aku butuh waktu buat bener-bener tenang lagi.
+
+Tapi yang bikin aku tetap di sini
+bukan karena aku lupa,
+melainkan karena aku liat perubahan kamu.
+
+Aku liat kamu belajar.
+Aku liat kamu pelan-pelan ninggalin hal-hal yang dulu salah.
+Bukan karena dipaksa,
+tapi karena kamu mau.
+Dan buat aku, itu berarti.
+
+Kepercayaan itu nggak datang tiba-tiba.
+Aku bangun pelan-pelan,
+dari sikap kamu yang lebih jujur,
+dari cara kamu lebih menjaga jarak,
+dari usaha kamu buat bikin aku merasa aman lagi.
+
+Ada hari-hari di mana aku masih takut.
+Bukan karena aku nggak percaya,
+tapi karena aku pernah terluka.
+Dan di saat-saat itu,
+kamu nggak pergi.
+Kamu bertahan.
+Kamu nenangin aku tanpa nyalahin aku.
+
+Aku nggak minta kamu jadi sempurna.
+Aku cuma minta kamu konsisten.
+Dan sejauh ini, kamu berusaha menepatinya.
+
+Kalau hari ini aku masih di sini,
+itu bukan karena aku menutup mata.
+Tapi karena aku memilih percaya
+pada versi kamu yang sekarang.
+
+Dan aku harap,
+kita terus jaga ini sama-sama.
+Pelan, jujur, dan saling menguatkan.
+
+Karena buat aku,
+perubahan kamu itu bukan hal kecil.
+Itu bukti kalau aku layak diperjuangkan.`},
+
+{
+ pw:"021004",
+ text:`Di setiap doa aku,
+nama kamu selalu ada.
+
+Di setiap langkah kamu,
+aku mungkin nggak selalu ada di depan kamu,
+tapi aku selalu ada di belakang,
+jadi tempat kamu pulang setiap kali cape.
+
+Aku doain kamu diam-diam.
+Di waktu-waktu kamu nggak tau.
+Di malam-malam sepi,
+aku sebut nama kamu pelan-pelan,
+aku titipin kamu ke Tuhan,
+aku minta yang terbaik buat hidup kamu,
+bukan cuma buat kita, tapi buat kamu sebagai diri kamu sendiri.
+
+Aku dukung semua yang mau kamu capai.
+Mimpi kamu.
+Rencana kamu.
+Hal-hal yang bikin mata kamu berbinar waktu cerita.
+Aku nggak pernah pengen jadi penghalang,
+aku pengen jadi alasan kamu berani melangkah lebih jauh.
+
+Kalau suatu hari kamu jatuh,
+aku mau jadi orang pertama yang nengahin tangan.
+Kalau kamu ragu sama diri kamu sendiri,
+aku mau jadi suara yang bilang,
+“kamu bisa, aku percaya.”
+
+Dan tentang kamu jadi suami aku…
+aku nggak ngomong itu karena aku cuma sayang.
+Aku ngomong itu karena aku percaya.
+Aku lihat cara kamu berubah.
+Cara kamu bertanggung jawab.
+Cara kamu belajar jadi lebih baik setiap hari.
+
+Aku nggak minta kamu sempurna.
+Aku cuma mau tumbuh bareng.
+Bangun hidup pelan-pelan.
+Belajar bareng.
+Salah bareng.
+Dan pulang ke orang yang sama setiap hari.
+
+Kalau suatu hari nanti aku cape,
+tolong inget satu hal ini ya,
+Aku milih kamu dengan doa.
+Aku jaga kamu dengan hati.
+Dan aku nunggu kamu
+bukan dengan paksaan,
+tapi dengan keyakinan.
+
+Karena dari semua harapan yang aku simpan,
+salah satunya adalah kamu,
+yang berdiri di depan aku nanti,
+bukan lagi sebagai pacar,
+tapi sebagai suami aku.`},
+
+{
+ pw:"220203",
+ text:`Halaman terakhir ini
+bukan akhir cerita.
+
+Aku sering mikir tentang nanti.
+Bukan nanti yang jauh dan menakutkan,
+tapi nanti yang kita bangun pelan-pelan.
+
+Aku kebayang hari-hari sederhana.
+Tentang cape setelah kerja.
+Tentang cerita kecil sebelum tidur.
+Tentang kita yang nggak selalu sepakat,
+tapi selalu milih buat saling dengerin.
+
+Aku nggak tau hidup bakal ngetes kita sekeras apa.
+Aku nggak tau dunia bakal berubah sejauh apa.
+Tapi satu yang aku tau,
+selama kita masih saling genggam,
+aku mau tetap jalan bareng kamu.
+
+Hubungan ini bukan cuma tentang rasa.
+Ini tentang komitmen.
+Tentang dua orang yang sama-sama belajar dewasa.
+Tentang pulang ke orang yang sama
+meskipun dunia lagi ribut.
+
+Aku pengen tumbuh sama kamu.
+Belajar sabar bareng.
+Belajar kuat bareng.
+Dan belajar nggak menyerah bareng.
+
+Kalau suatu hari nanti kamu ngerasa lelah,
+tolong inget aku ada di sini.
+Bukan buat menuntut,
+tapi buat nemenin.
+
+Dan sebelum aku nutup halaman ini,
+aku mau kamu tau satu hal yang paling jujur dari hati aku,
+
+aku bangga punya kamu, sayang.
+Bangga sama usaha kamu.
+Bangga sama cara kamu bertahan.
+Bangga sama versi kamu yang terus belajar jadi lebih baik.
+
+Dan di antara semua kemungkinan masa depan,
+aku tetap pengen kamu ada di sana,
+sama aku.`}
+];
+
+let current=0;
+let needPW=true;
+let emailNow="";
+
+let emails=JSON.parse(localStorage.getItem("emails")||"[]");
+let comments=JSON.parse(localStorage.getItem("comments")||"[]");
+
+function enter(){
+ emailNow=emailInput.value.trim().toLowerCase();
+ if(!emailNow)return;
+
+ if(!emails.includes(emailNow)){
+  emails.push(emailNow);
+  localStorage.setItem("emails",JSON.stringify(emails));
+ }
+
+ emailBox.classList.add("hidden");
+ book.classList.remove("hidden");
+ commentBox.classList.remove("hidden");
+
+ if(emailNow===owner){
+  adminBox.classList.remove("hidden");
+  renderAdmin();
+ }
+
+ if(!special.includes(emailNow)) needPW=false;
+ loadPage();
+}
+
+function loadPage(){
+ book.innerHTML=`
+ <div class="sheet lock">
+  <h3>Halaman ${current+1}</h3>
+  ${needPW?`
+   <input type="password" id="pw" placeholder="password halaman ini">
+   <button onclick="unlock()">Buka Diary</button>
+   <div class="error" id="err"></div>
+  `:`<button onclick="unlock()">Baca Diary</button>`}
+ </div>
+
+ <div class="sheet diary">
+  <p>${pages[current].text.replace(/\\n/g,"<br>")}</p>
+  ${current<pages.length-1?
+  `<button onclick="next()">Balik Halaman</button>`:
+  `<p class="small">— akhir diary —</p>`}
+ </div>`;
+}
+
+function unlock(){
+ if(needPW && pw.value!==pages[current].pw){
+  err.innerText="KAMU UDAH GA SAYANG AKU YA? GITU AJA GATAU";
+  return;
+ }
+ book.classList.add("open");
+}
+
+function next(){
+ current++;
+ book.classList.remove("open");
+ setTimeout(loadPage,600);
+}
+
+function addComment(){
+ if(!comment.value)return;
+ comments.push(comment.value);
+ localStorage.setItem("comments",JSON.stringify(comments));
+ comment.value="";
+ if(emailNow===owner) renderAdmin();
+}
+
+function renderAdmin(){
+ emailLog.innerHTML="";
+ emails.forEach(e=>emailLog.innerHTML+=`<li>${e}</li>`);
+
+ commentLog.innerHTML="";
+ comments.forEach(c=>commentLog.innerHTML+=`<li>${c}</li>`);
+}
+
+</script>
+
+</body>
+</html>
